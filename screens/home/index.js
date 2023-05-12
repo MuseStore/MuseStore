@@ -3,13 +3,14 @@ import { ActivityIndicator, StyleSheet, Text, View, FlatList, Button, TouchableO
 import firebase from 'firebase/compat/app';
 import * as Linking from 'expo-linking';
 import * as FileSystem from 'expo-file-system';
+import {ExpandableListView} from 'react-native-expandable-listview';
 
 import { getFileURL } from '../../utils/auth';
 
 
 export default function HomeScreen() {
     const [loading, setLoading] = useState(true); 
-    const [users, setUsers] = useState([]); 
+    const [documents, setDocuments] = useState({}); 
     
     _getAllFilesInDirectory = async() => {
              let dir = await FileSystem.readDirectoryAsync(".");
@@ -47,8 +48,6 @@ export default function HomeScreen() {
     useEffect(() => {
 
         const unsubsribe = 
-            
-        
 
             firebase
             .firestore()
@@ -57,14 +56,19 @@ export default function HomeScreen() {
             .collection("docs")
             .onSnapshot(querySnapshot => {
 
+            const newDocs = []
+            let i = 0;
             querySnapshot.forEach(documentSnapshot => {
-                users.push({
-                ...documentSnapshot.data(),
-                key: documentSnapshot.id,
+                console.log(documentSnapshot.id)
+                console.log(documentSnapshot.data().creator)
+                newDocs.push({
+                    id: i,
+                    categoryName: "Tests",
                 });
+                i++;
             });
 
-            setUsers(users);
+            setDocuments(newDocs);
             setLoading(false);
             });
 
@@ -75,33 +79,48 @@ export default function HomeScreen() {
         return <ActivityIndicator />;
     }
 
-    return (
-        <FlatList style={styles.list}
-        data={users}
-        renderItem={({ item }) => (
-            <Pressable 
-             onPress={() => (openFile(item.key))}            
-             style={({pressed}) => [
-                {backgroundColor: pressed ? 'rgb(210, 230, 255)' : 'white'},
-                styles.pressableDocument,
-             ]}    
-            >
+    function handleItemClick({index}) {
+        console.log(index);
+    };
 
-                <Image
-                 style={styles.icon}
-                 source={require('../../icons/pdf.png')}            
-                />
-                <Text style={styles.documentTitle}>{item.key}</Text>
+    function handleInnerItemClick({innerIndex, item, itemIndex}) {
+        console.log(innerIndex);
+    };
+    
+    console.log(documents)
+    return (
+        // <FlatList style={styles.list}
+        // data={users}
+        // renderItem={({ item }) => (
+        //     <Pressable 
+        //      onPress={() => (openFile(item.key))}            
+        //      style={({pressed}) => [
+        //         {backgroundColor: pressed ? 'rgb(210, 230, 255)' : 'white'},
+        //         styles.pressableDocument,
+        //      ]}    
+        //     >
+
+        //         <Image
+        //          style={styles.icon}
+        //          source={require('../../icons/pdf.png')}            
+        //         />
+        //         <Text style={styles.documentTitle}>{item.key}</Text>
             
-            </Pressable>          
-        )}
-        ItemSeparatorComponent={() => <View
-            style={{
-              backgroundColor: 'grey',
-              height: 0.5,
-            }}
-          />}
-        />
+        //     </Pressable>          
+        // )}
+        // ItemSeparatorComponent={() => <View
+        //     style={{
+        //       backgroundColor: 'grey',
+        //       height: 0.5,
+        //     }}
+        //   />}
+        // />
+        
+       <ExpandableListView
+        data={documents} // required
+        onInnerItemClick={handleInnerItemClick}
+        onItemClick={handleItemClick}
+      />
     );
 }
 
