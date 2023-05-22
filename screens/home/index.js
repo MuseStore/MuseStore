@@ -39,8 +39,8 @@ export default function HomeScreen() {
         }
     }
     
-    async function openFile(path) {
-        const uri = await getFileURL(path);
+    async function openFile(item) {
+        const uri = await getFileURL(item.path);
         Linking.openURL(uri);
     }
 
@@ -57,15 +57,17 @@ export default function HomeScreen() {
             .onSnapshot(querySnapshot => {
 
             const newDocs = []
-            let i = 0;
             querySnapshot.forEach(documentSnapshot => {
                 console.log(documentSnapshot.id)
                 console.log(documentSnapshot.data().creator)
                 newDocs.push({
-                    id: i,
-                    categoryName: "Tests",
-                });
-                i++;
+                    key: documentSnapshot.id,
+                    path: documentSnapshot.data().path,
+                })
+                // newDocs.push({
+                //     id: i,
+                //     categoryName: "Tests",
+                // });
             });
 
             setDocuments(newDocs);
@@ -87,40 +89,40 @@ export default function HomeScreen() {
         console.log(innerIndex);
     };
     
-    console.log(documents)
+    console.log("Documents" + JSON.stringify(documents))
     return (
-        // <FlatList style={styles.list}
-        // data={users}
-        // renderItem={({ item }) => (
-        //     <Pressable 
-        //      onPress={() => (openFile(item.key))}            
-        //      style={({pressed}) => [
-        //         {backgroundColor: pressed ? 'rgb(210, 230, 255)' : 'white'},
-        //         styles.pressableDocument,
-        //      ]}    
-        //     >
+        <FlatList style={styles.list}
+        data={documents}
+        renderItem={({ item }) => (
+            <Pressable 
+             onPress={() => (openFile(item))}            
+             style={({pressed}) => [
+                {backgroundColor: pressed ? 'rgb(210, 230, 255)' : 'white'},
+                styles.pressableDocument,
+             ]}    
+            >
 
-        //         <Image
-        //          style={styles.icon}
-        //          source={require('../../icons/pdf.png')}            
-        //         />
-        //         <Text style={styles.documentTitle}>{item.key}</Text>
+                <Image
+                 style={styles.icon}
+                 source={require('../../icons/pdf.png')}            
+                />
+                <Text style={styles.documentTitle}>{item.key}</Text>
             
-        //     </Pressable>          
-        // )}
-        // ItemSeparatorComponent={() => <View
-        //     style={{
-        //       backgroundColor: 'grey',
-        //       height: 0.5,
-        //     }}
-        //   />}
-        // />
+            </Pressable>          
+        )}
+        ItemSeparatorComponent={() => <View
+            style={{
+              backgroundColor: 'grey',
+              height: 0.5,
+            }}
+          />}
+        />
         
-       <ExpandableListView
-        data={documents} // required
-        onInnerItemClick={handleInnerItemClick}
-        onItemClick={handleItemClick}
-      />
+    //    <ExpandableListView
+    //     data={documents} // required
+    //     onInnerItemClick={handleInnerItemClick}
+    //     onItemClick={handleItemClick}
+    //   />
     );
 }
 
