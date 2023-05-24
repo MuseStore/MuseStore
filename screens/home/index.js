@@ -2,94 +2,20 @@ import { useState, useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View, FlatList, Button, TouchableOpacity, Image, Pressable } from 'react-native';
 import firebase from 'firebase/compat/app';
 import * as Linking from 'expo-linking';
-import * as FileSystem from 'expo-file-system';
-import {ExpandableListView} from 'react-native-expandable-listview';
-
+import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import { createDrawerNavigator } from '@react-navigation/drawer';
 import { getFileURL } from '../../utils/auth';
+import styles from "./styles.js"
 
-
-export default function HomeScreen() {
-    const [loading, setLoading] = useState(true); 
-    const [documents, setDocuments] = useState({}); 
-    
-    _getAllFilesInDirectory = async() => {
-             let dir = await FileSystem.readDirectoryAsync(".");
-          
-             dir.forEach((val) => {
-               console.log(val)
-          });
-          
-          }
-    async function download(path) {
-        console.log(FileSystem.documentDirectory)
-        const url = await getFileURL(path)
-
-        
-        const downloadResumable = FileSystem.createDownloadResumable(
-            url,
-            "file://" + path,
-            {},
-        );
-        
-        try {
-            const { uri } = await downloadResumable.downloadAsync();
-            console.log('Finished downloading to ', uri);
-        } catch (e) {
-            console.error(e);
-        }
-    }
+function DocumentList(docs) {    
     
     async function openFile(item) {
         const uri = await getFileURL(item.path);
         Linking.openURL(uri);
     }
 
-
-    useEffect(() => {
-
-        const unsubsribe = 
-
-            firebase
-            .firestore()
-            .collection('users')
-            .doc(firebase.auth().currentUser.uid)
-            .collection("docs")
-            .onSnapshot(querySnapshot => {
-
-            const newDocs = []
-            querySnapshot.forEach(documentSnapshot => {
-                console.log(documentSnapshot.id)
-                console.log(documentSnapshot.data().creator)
-                newDocs.push({
-                    key: documentSnapshot.id,
-                    path: documentSnapshot.data().path,
-                })
-                // newDocs.push({
-                //     id: i,
-                //     categoryName: "Tests",
-                // });
-            });
-
-            setDocuments(newDocs);
-            setLoading(false);
-            });
-
-            return () => unsubsribe();
-    }, []);
-
-    if (loading) {
-        return <ActivityIndicator />;
-    }
-
-    function handleItemClick({index}) {
-        console.log(index);
-    };
-
-    function handleInnerItemClick({innerIndex, item, itemIndex}) {
-        console.log(innerIndex);
-    };
-    
     console.log("Documents" + JSON.stringify(documents))
+
     return (
         <FlatList style={styles.list}
         data={documents}
@@ -117,44 +43,95 @@ export default function HomeScreen() {
             }}
           />}
         />
-        
-    //    <ExpandableListView
-    //     data={documents} // required
-    //     onInnerItemClick={handleInnerItemClick}
-    //     onItemClick={handleItemClick}
-    //   />
     );
 }
 
+function HomeScreen() {
+    [loading, setLoading] = useState(true);
+    [documents, setDocuments] = useState([]);
 
-const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#fff',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-  
-    list: {
-      marginTop: 100,
-    },
+    useEffect(() => {
 
-    icon: {
-        width: "10%", 
-        height: "70%",
-        marginLeft: 20,
-        resizeMode: "stretch",
-    },
-    
-    documentTitle: {
-        marginLeft: 10,
-    },
+        const unsubsribe = 
+            firebase
+            .firestore()
+            .collection('users')
+            .doc(firebase.auth().currentUser.uid)
+            .collection("docs")
+            .onSnapshot(querySnapshot => {
 
-    pressableDocument: {
-        flexDirection: 'row',
-        height: 50,
-        alignItems: 'center',
-        borderRadius: 10,
-    },
-  });
+            const newDocs = []
+            querySnapshot.forEach(documentSnapshot => {
+                console.log(documentSnapshot.id)
+                console.log(documentSnapshot.data().creator)
+                newDocs.push({
+                    key: documentSnapshot.id,
+                    path: documentSnapshot.data().path,
+                })
+            });
+
+            setDocuments(newDocs);
+            setLoading(false);
+            });
+
+            return () => unsubsribe();
+    }, []);
+
+    if (loading) {
+        return <ActivityIndicator />;
+    }
+
+    return DocumentList(documents);
+}
+
+function Table() {
+    [loading, setLoading] = useState(true);
+    [documents, setDocuments] = useState([]);
+
+    useEffect(() => {
+
+        const unsubsribe = 
+            firebase
+            .firestore()
+            .collection('users')
+            .doc(firebase.auth().currentUser.uid)
+            .collection("table")
+            .onSnapshot(querySnapshot => {
+
+            const newDocs = []
+            querySnapshot.forEach(documentSnapshot => {
+                console.log(documentSnapshot.id)
+                console.log(documentSnapshot.data().creator)
+                newDocs.push({
+                    key: documentSnapshot.id,
+                    path: documentSnapshot.data().path,
+                })
+            });
+
+            setDocuments(newDocs);
+            setLoading(false);
+            });
+
+            return () => unsubsribe();
+    }, []);
+
+    if (loading) {
+        return <ActivityIndicator />;
+    }
+
+    return DocumentList(documents);
+}
+
+
+const Drawer = createDrawerNavigator();
+
+export default function Home() {
+    return (
+            <Drawer.Navigator>
+                <Drawer.Screen name="Home" component={HomeScreen} />
+                <Drawer.Screen name="Table" component={Table} />
+            </Drawer.Navigator>
+    )
+}
+
   
